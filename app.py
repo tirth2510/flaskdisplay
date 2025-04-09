@@ -1,3 +1,6 @@
+import base64
+import json
+from io import BytesIO
 import os
 from flask import Flask, jsonify
 from firebase_admin import credentials, firestore, initialize_app
@@ -8,7 +11,14 @@ os.environ["GOOGLE_API_KEY"] = "AIzaSyCfzCErNSYRZY1aKt4l-gzpQmS_oy4T00U"
 genai.configure(api_key=os.environ["GOOGLE_API_KEY"])
 
 # Initialize Firebase and Flask for formatting app
-cred = credentials.Certificate('../aiquizgenerator-b8817-firebase-adminsdk-bml1x-9a92c0b273.json')  # Replace with Firebase credentials path
+firebase_creds_b64 = os.environ.get("FIREBASE_CREDENTIALS_JSON")
+if not firebase_creds_b64:
+    raise ValueError("FIREBASE_CREDENTIALS_JSON not set in environment")
+
+decoded_json = base64.b64decode(firebase_creds_b64)
+firebase_creds = json.loads(decoded_json)
+
+cred = credentials.Certificate(firebase_creds)
 initialize_app(cred)
 db = firestore.client()
 app = Flask(__name__)
